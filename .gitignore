@@ -4,3 +4,5 @@ ckanext_datajson.egg-info
 .DS_Store
 ckanext/datajson/export_map/*.map.json
 .idea
+
+!ckanext/datajson/export_map/export.map.json
