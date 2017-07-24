@@ -311,6 +311,7 @@ class Wrappers:
         'not updated': 'irregular'
     }
 
+
     @staticmethod
     def fix_accrual_periodicity(frequency):
         return Wrappers.accrual_periodicity_dict.get(str(frequency).lower().strip(), frequency)
@@ -331,11 +332,9 @@ class Wrappers:
                                get_extra(package, "Contact Name",
                                          package.get('maintainer')))
             else:
-                fn = package.get(contact_point_map.get('fn').get('field'),
-                                 get_extra(package, "Contact Name",
-                                           package.get('maintainer')))
+                fn = package.get('maintainer')
 
-            fn = get_responsible_party(fn)
+                fn = get_responsible_party(fn)
 
             if Wrappers.redaction_enabled:
                 redaction_reason = get_extra(package, 'redacted_' + contact_point_map.get('fn').get('field'), False)
@@ -354,6 +353,7 @@ class Wrappers:
             if email and not is_redacted(email) and '@' in email:
                 email = 'mailto:' + email
 
+
             if Wrappers.redaction_enabled:
                 redaction_reason = get_extra(package, 'redacted_' + contact_point_map.get('hasEmail').get('field'),
                                              False)
@@ -363,6 +363,10 @@ class Wrappers:
                 email = Package2Pod.filter(email)
 
             contact_point = OrderedDict([('@type', 'vcard:Contact')])
+            if not fn or len(fn) == 0:
+                fn = "No name provided"
+            if not email or len(email) == 0:
+                email = "mailto:datos@vivelabbogota.com"
             if fn:
                 contact_point['fn'] = fn
             if email:
@@ -448,10 +452,48 @@ class Wrappers:
             arr += [OrderedDict(striped_resource)]
 
         return arr
+    licenses = {'cc-by': 'creativecommons.org/licenses/by/4.0', 'cc-by-sa': 'creativecommons.org/licenses/by-sa/4.0',
+                'cc-zero': 'creativecommons.org/publicdomain/zero/1.0',
+                'cc-nc': 'creativecommons.org/licenses/by-nc/4.0', 'gfdl': 'www.gnu.org/copyleft/fdl.html',
+                'odc-by': 'opendatacommons.org/licenses/by/1-0', 'odc-odbl': 'opendatacommons.org/licenses/odbl',
+                'odc-pddl': 'opendatacommons.org/licenses/pddl',
+                'other-at': 'project-open-data.cio.gov/unknown-license/#v1-legacy/other-at',
+                'other-nc': 'project-open-data.cio.gov/unknown-license/#v1-legacy/other-nc',
+                'other-closed': 'project-open-data.cio.gov/unknown-license/#v1-legacy/other-closed',
+                'other-open': 'project-open-data.cio.gov/unknown-license/#v1-legacy/other-open',
+                'other-pd': 'creativecommons.org/publicdomain/mark/1.0/other-pd',
+                'uk-ogl': 'www.nationalarchives.gov.uk/doc/open-government-licence/version/3'}
+    @staticmethod
+    def license_it(value):
+        if value:
+            return value
+        package = Wrappers.pkg
+        license_id = package.get('license_id')
+        response = ""
+        if Wrappers.licenses.get(license_id):
+            response = 'http://'+Wrappers.licenses.get(license_id)
+        else:
+            log.error( "License not found: $s",license_id)
+        if not response or len( response ) == 0:
+            response = "License Not Specified"
+        return response
+
+    @staticmethod
+    def keyword_it(value):
+        if value:
+            return value
+        key = 'display_name'
+        response = []
+        package = Wrappers.pkg
+        for tag in package.get('tags'):
+            response.append(tag[key])
+        if not response or len(response) == 0:
+            response = ['No keywords']
+        return response
 
     @staticmethod
     def bureau_code(value):
-        if value:
+        """if value:
             return value
 
         if not 'organization' not in Wrappers.pkg or 'title' not in Wrappers.pkg.get('organization'):
@@ -469,7 +511,12 @@ class Wrappers:
         log.debug("found match: %s", "[{0}:{1}]".format(bureau.get('OMB Agency Code'), bureau.get('OMB Bureau Code')))
         result = "{0}:{1}".format(bureau.get('OMB Agency Code'), bureau.get('OMB Bureau Code'))
         log.debug("found match: '%s'", result)
-        return [result]
+        return [result]"""
+        return ["000:000"]
+
+    @staticmethod
+    def program_code(value):
+        return ["000:000"]
 
     @staticmethod
     def _get_bureau_code_list():

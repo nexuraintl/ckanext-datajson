@@ -1,12 +1,21 @@
 {
   "validation_enabled": false,
   "catalog_headers": {
-    "conformsTo": "https://project-open-data.cio.gov/v1.1/schema",
-    "describedBy": "https://project-open-data.cio.gov/v1.1/schema/catalog.json",
     "@context": "https://project-open-data.cio.gov/v1.1/schema/catalog.jsonld",
-    "@type": "dcat:Catalog"
+    "@id": "http://ckan.vivelabbogota.com/data.json",
+    "@type": "dcat:Catalog",
+    "conformsTo": "https://project-open-data.cio.gov/v1.1/schema",
+    "describedBy": "https://project-open-data.cio.gov/v1.1/schema/catalog.json"
   },
   "dataset_fields_map": {
+    "accessLevel": {
+      "field": "Access Level",
+      "default": "public"
+    },
+    "issued": {
+      "extra": true,
+      "field": "issued"
+    },
     "title": {
       "field": "title"
     },
@@ -15,10 +24,6 @@
     },
     "modified": {
       "field": "metadata_modified"
-    },
-    "accessLevel": {
-      "field": "Access Level",
-      "default": "public"
     },
     "identifier": {
       "field": "id"
@@ -39,16 +44,12 @@
       "extra": true,
       "field": "Described by Type"
     },
-    "issued": {
-      "extra": true,
-      "field": "issued"
-    },
     "landingPage": {
       "extra": true,
       "field": "landingPage"
     },
-    "licenseId": {
-      "field": "license_id"
+    "license": {
+      "field": "License URL"
 
     },
     "primaryITInvestmentUII": {
@@ -85,11 +86,9 @@
       "wrapper": "build_contact_point",
       "map": {
         "fn": {
-          "extra": true,
           "field": "Responsible Party"
         },
         "hasEmail": {
-          "extra": true,
           "field": "Contact Email"
         }
       }
@@ -101,7 +100,8 @@
           "field": "url"
         },
         "mediaType": {
-          "field": "mimetype"
+          "field": "format",
+          "wrapper": "mime_type_it"
         },
         "format": {
           "field": "format"
@@ -124,23 +124,24 @@
       }
     },
     "keyword": {
-      "extra": true,
       "type": "array",
       "field": "tags",
-      "split": ","
+      "split": ",",
+      "wrapper": "keyword_it"
     },
     "bureauCode": {
       "type": "array",
-      "extra": true,
       "field": "Bureau Code",
       "split": ",",
-      "wrapper": "bureau_code"
+      "wrapper": "bureau_code",
+      "default": ["000:00"]
     },
     "programCode": {
       "type": "array",
-      "extra": true,
       "field": "Program Code",
-      "split": ","
+      "split": ",",
+      "wrapper": "program_code",
+      "default": ["000:000"]
     },
     "language": {
       "type": "array",
