@@ -108,6 +108,7 @@ def strip_if_string(val):
     return val
 
 
+
 def get_export_map_json(map_filename):
     """
     Reading json export map from file

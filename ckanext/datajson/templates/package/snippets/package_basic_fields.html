@@ -1,0 +1,7 @@
+{% ckan_extends %}
+
+{% block package_basic_fields_custom %}
+
+{{ form.select('category_mintic', id=category_mintic, label=_('Categoría MinTIC'), options=h.get_mintic_categories() ) }}
+
+  {% endblock %}

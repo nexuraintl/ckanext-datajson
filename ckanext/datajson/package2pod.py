@@ -53,7 +53,11 @@ class Package2Pod:
         return content
 
     @staticmethod
-    def convert_package(package, json_export_map, redaction_enabled=False):
+    def convert_package(package, json_export_map, redaction_enabled=False, site_url=None):
+        if site_url :
+            Package2Pod.site_url = site_url
+            log.error("%s",Package2Pod.site_url)
+
         import sys, os
 
         try:
@@ -310,6 +314,23 @@ class Wrappers:
         'unknown': 'irregular',
         'not updated': 'irregular'
     }
+
+    @staticmethod
+    def description_socrata_style(value):
+        package = Wrappers.pkg
+        if Package2Pod.site_url:
+            site_url = Package2Pod.site_url
+        else:
+            log.error( "Site URL Not Configured")
+        organization = package.get('organization')
+        extras = dict([(x['key'], x['value']) for x in package.get('extras', {})])
+        category_mintic = "No se ha definido una categoria"
+        if 'category_mintic' in extras:
+            category_mintic = extras['category_mintic']
+        response = u"Datos tomados del portal de la alcaldia de Bogota, {0}. " \
+        "Datos ofrecidos por {1}, {2} . " \
+        "Categoria {3}.".format(site_url,organization["title"],site_url+"/"+organization["id"],category_mintic)
+        return response
 
 
     @staticmethod

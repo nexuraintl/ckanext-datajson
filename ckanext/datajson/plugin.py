@@ -4,6 +4,8 @@ import json
 import sys
 
 import ckan.plugins as p
+import ckan.plugins.toolkit as tk
+
 from ckan.lib.base import BaseController, render, c
 from pylons import request, response
 import re
@@ -24,10 +26,58 @@ try:
 except ImportError:
     from sqlalchemy.util import OrderedDict
 
+def get_mintic_categories():
+    import os
 
-class DataJsonPlugin(p.SingletonPlugin):
+    categories_path = os.path.join(os.path.dirname(__file__), 'socrata-mintic', 'categories.json')
+
+    if not os.path.isfile(categories_path):
+        log.warn("Could not find %s ! Please create it. Use samples from same folder", map_path)
+
+    with open(categories_path, 'r') as categories_json:
+        json_categories = json.load(categories_json, object_pairs_hook=OrderedDict)
+
+    return json_categories['values']
+
+class DataJsonPlugin(p.SingletonPlugin, tk.DefaultDatasetForm):
     p.implements(p.interfaces.IConfigurer)
+    p.implements(p.IDatasetForm)
+    p.implements(p.ITemplateHelpers)
     p.implements(p.interfaces.IRoutes, inherit=True)
+
+    # TEMPLATE HELPERS
+    def get_helpers(self):
+
+        return {'get_mintic_categories': get_mintic_categories}
+    # EXTRA FIELD
+    def create_package_schema(self):
+        # let's grab the default schema in our plugin
+        schema = super(DataJsonPlugin, self).create_package_schema()
+        # our custom field
+        schema.update({
+            'category_mintic': [tk.get_validator('ignore_missing'),
+                            tk.get_converter('convert_to_extras')]
+        })
+        return schema
+
+    def update_package_schema(self):
+        schema = super(DataJsonPlugin, self).update_package_schema()
+        # our custom field
+        schema.update({
+            'category_mintic': [tk.get_validator('ignore_missing'),
+                            tk.get_converter('convert_to_extras')]
+        })
+        return schema
+
+    def is_fallback(self):
+        # Return True to register this plugin as the default handler for
+        # package types not handled by any other IDatasetForm plugin.
+        return True
+
+    def package_types(self):
+        # This plugin doesn't handle any special package types, it just
+        # registers itself as the default (above).
+        return []
 
     def update_config(self, config):
         # Must use IConfigurer rather than IConfigurable because only IConfigurer
@@ -38,6 +88,7 @@ class DataJsonPlugin(p.SingletonPlugin):
         # DataJsonPlugin.route_edata_path = config.get("ckanext.enterprisedatajson.path", "/enterprisedata.json")
         DataJsonPlugin.route_enabled = config.get("ckanext.datajson.url_enabled", "True") == 'True'
         DataJsonPlugin.route_path = config.get("ckanext.datajson.path", "/data.json")
+        DataJsonPlugin.route_path_socrata_colombia = config.get("ckanext.datajson.path.socrata", "/socrata-colombia-federation/data.json")
         DataJsonPlugin.route_ld_path = config.get(" ckanext.datajsonld.path",
                                                   re.sub(r"\.json$", ".jsonld", DataJsonPlugin.route_path))
         DataJsonPlugin.ld_id = config.get("ckanext.datajsonld.id", config.get("ckan.site_url"))
@@ -59,6 +110,8 @@ class DataJsonPlugin(p.SingletonPlugin):
             # /data.json and /data.jsonld (or other path as configured by user)
             m.connect('datajson_export', DataJsonPlugin.route_path,
                       controller='ckanext.datajson.plugin:DataJsonController', action='generate_json')
+            m.connect('datajson_export', DataJsonPlugin.route_path_socrata_colombia,
+                      controller='ckanext.datajson.plugin:DataJsonController', action='generate_json_socrata')
             m.connect('organization_export', '/organization/{org_id}/data.json',
                       controller='ckanext.datajson.plugin:DataJsonController', action='generate_org_json')
             # TODO commenting out enterprise data inventory for right now
@@ -91,6 +144,9 @@ class DataJsonController(BaseController):
     def generate_json(self):
         return self.generate_output('json')
 
+    def generate_json_socrata(self):
+        return self.generate_output('json', 'socrata')
+
     def generate_org_json(self, org_id):
         return self.generate_output('json', org_id=org_id)
 
@@ -122,18 +178,18 @@ class DataJsonController(BaseController):
             return "Invalid organization id"
         return "Invalid type"
 
-    def generate_output(self, fmt='json', org_id=None):
+    def generate_output(self, fmt='json', custom_map=None, org_id=None):
         self._errors_json = []
         # set content type (charset required or pylons throws an error)
         response.content_type = 'application/json; charset=UTF-8'
-
+        site_url = DataJsonPlugin.site_url;
         # allow caching of response (e.g. by Apache)
         del response.headers["Cache-Control"]
         del response.headers["Pragma"]
 
         # TODO special processing for enterprise
         # output
-        data = self.make_json(export_type='datajson', owner_org=org_id)
+        data = self.make_json(export_type='datajson', custom_map=custom_map, owner_org=org_id, site_url=site_url)
 
         # if fmt == 'json-ld':
         #     # Convert this to JSON-LD.
@@ -154,7 +210,7 @@ class DataJsonController(BaseController):
 
         return p.toolkit.literal(json.dumps(data, indent=2))
 
-    def make_json(self, export_type='datajson', owner_org=None):
+    def make_json(self, export_type='datajson', custom_map=None, owner_org=None, site_url=None):
         # Error handler for creating error log
         stream = StringIO.StringIO()
         eh = logging.StreamHandler(stream)
@@ -185,7 +241,10 @@ class DataJsonController(BaseController):
                 packages = DataJsonController._get_ckan_datasets()
                 # packages = p.toolkit.get_action("current_package_list_with_resources")(None, {})
 
-            json_export_map = get_export_map_json('export.map.json')
+            if( custom_map == "socrata"):
+                json_export_map = get_export_map_json('socrata.map.json')
+            else:
+                json_export_map = get_export_map_json('export.map.json')
 
             if json_export_map:
                 for pkg in packages:
@@ -224,7 +283,7 @@ class DataJsonController(BaseController):
                             continue
 
                     redaction_enabled = ('redacted' == export_type)
-                    datajson_entry = Package2Pod.convert_package(pkg, json_export_map, redaction_enabled)
+                    datajson_entry = Package2Pod.convert_package(pkg, json_export_map, redaction_enabled,site_url)
                     errors = None
                     if 'errors' in datajson_entry.keys():
                         errors_json.append(datajson_entry)
