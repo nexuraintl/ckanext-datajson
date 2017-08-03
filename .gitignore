@@ -6,3 +6,4 @@ ckanext/datajson/export_map/*.map.json
 .idea
 
 !ckanext/datajson/export_map/export.map.json
+!ckanext/datajson/export_map/socrata.map.json

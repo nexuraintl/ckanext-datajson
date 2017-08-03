@@ -1,0 +1,166 @@
+{
+  "validation_enabled": false,
+  "catalog_headers": {
+    "@context": "https://project-open-data.cio.gov/v1.1/schema/catalog.jsonld",
+    "@id": "http://ckan.vivelabbogota.com/data.json",
+    "@type": "dcat:Catalog",
+    "conformsTo": "https://project-open-data.cio.gov/v1.1/schema",
+    "describedBy": "https://project-open-data.cio.gov/v1.1/schema/catalog.json"
+  },
+  "dataset_fields_map": {
+    "accessLevel": {
+      "field": "Access Level",
+      "default": "public"
+    },
+    "issued": {
+      "extra": true,
+      "field": "issued"
+    },
+    "title": {
+      "field": "title"
+    },
+    "description": {
+      "field": "notes",
+      "wrapper": "description_socrata_style"
+    },
+    "modified": {
+      "field": "metadata_modified"
+    },
+    "identifier": {
+      "field": "id"
+    },
+    "dataQuality": {
+      "extra": true,
+      "field": "Data Quality"
+    },
+    "conformsTo": {
+      "extra": true,
+      "field": "Conforms To"
+    },
+    "describedBy": {
+      "extra": true,
+      "field": "Described by"
+    },
+    "describedByType": {
+      "extra": true,
+      "field": "Described by Type"
+    },
+    "landingPage": {
+      "extra": true,
+      "field": "landingPage"
+    },
+    "license": {
+      "field": "License URL"
+
+    },
+    "primaryITInvestmentUII": {
+      "extra": true,
+      "field": "Primary It Investment Uii"
+    },
+    "rights": {
+      "extra": true,
+      "field": "rights"
+    },
+    "systemOfRecords": {
+      "extra": true,
+      "field": "System Of Records"
+    },
+    "spatial": {
+      "extra": true,
+      "field": "Spatial"
+    },
+    "temporal": {
+      "extra": true,
+      "field": "Temporal"
+    },
+    "publisher": {
+      "extra": true,
+      "field": "publisher",
+      "wrapper": "catalog_publisher"
+    },
+    "accrualPeriodicity": {
+      "extra": true,
+      "field": "Accrual Periodicity",
+      "wrapper": "fix_accrual_periodicity"
+    },
+    "contactPoint": {
+      "wrapper": "build_contact_point",
+      "map": {
+        "fn": {
+          "field": "Responsible Party"
+        },
+        "hasEmail": {
+          "field": "Contact Email"
+        }
+      }
+    },
+    "distribution": {
+      "wrapper": "generate_distribution",
+      "map": {
+        "accessURL": {
+          "field": "url"
+        },
+        "mediaType": {
+          "field": "format",
+          "wrapper": "mime_type_it"
+        },
+        "format": {
+          "field": "format"
+        },
+        "title": {
+          "field": "name"
+        },
+        "description": {
+          "field": "description"
+        },
+        "conformsTo": {
+          "field": "conformsTo"
+        },
+        "describedBy": {
+          "field": "describedBy"
+        },
+        "describedByType": {
+          "field": "describedByType"
+        }
+      }
+    },
+    "keyword": {
+      "type": "array",
+      "field": "tags",
+      "split": ",",
+      "wrapper": "keyword_it"
+    },
+    "bureauCode": {
+      "type": "array",
+      "field": "Bureau Code",
+      "split": ",",
+      "wrapper": "bureau_code",
+      "default": ["000:00"]
+    },
+    "programCode": {
+      "type": "array",
+      "field": "Program Code",
+      "split": ",",
+      "wrapper": "program_code",
+      "default": ["000:000"]
+    },
+    "language": {
+      "type": "array",
+      "extra": true,
+      "field": "Language",
+      "split": ","
+    },
+    "references": {
+      "type": "array",
+      "extra": true,
+      "field": "references",
+      "split": ","
+    },
+    "theme": {
+      "type": "array",
+      "extra": true,
+      "field": "theme",
+      "split": ","
+    }
+  }
+}
