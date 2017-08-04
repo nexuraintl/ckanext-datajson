@@ -321,7 +321,7 @@ class Wrappers:
         if Package2Pod.site_url:
             site_url = Package2Pod.site_url
         else:
-            log.error( "Site URL Not Configured")
+            log.error( "Site URL Not Configured" )
         organization = package.get('organization')
         extras = dict([(x['key'], x['value']) for x in package.get('extras', {})])
         category_mintic = "No se ha definido una categoria"
@@ -329,7 +329,7 @@ class Wrappers:
             category_mintic = extras['category_mintic']
         response = u"Datos tomados del portal de la alcaldia de Bogota, {0}. " \
         "Datos ofrecidos por {1}, {2} . " \
-        "Categoria {3}.".format(site_url,organization["title"],site_url+"/"+organization["id"],category_mintic)
+        "Categoria {3}.".format(site_url,organization["title"],site_url+"/organization/"+organization["id"],category_mintic)
         return response
 
 
