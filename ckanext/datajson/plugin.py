@@ -39,9 +39,8 @@ def get_mintic_categories():
 
     return json_categories['values']
 
-class DataJsonPlugin(p.SingletonPlugin, tk.DefaultDatasetForm):
+class DataJsonPlugin(p.SingletonPlugin):
     p.implements(p.interfaces.IConfigurer)
-    p.implements(p.IDatasetForm)
     p.implements(p.ITemplateHelpers)
     p.implements(p.interfaces.IRoutes, inherit=True)
 
@@ -49,35 +48,7 @@ class DataJsonPlugin(p.SingletonPlugin, tk.DefaultDatasetForm):
     def get_helpers(self):
 
         return {'get_mintic_categories': get_mintic_categories}
-    # EXTRA FIELD
-    def create_package_schema(self):
-        # let's grab the default schema in our plugin
-        schema = super(DataJsonPlugin, self).create_package_schema()
-        # our custom field
-        schema.update({
-            'category_mintic': [tk.get_validator('ignore_missing'),
-                            tk.get_converter('convert_to_extras')]
-        })
-        return schema
 
-    def update_package_schema(self):
-        schema = super(DataJsonPlugin, self).update_package_schema()
-        # our custom field
-        schema.update({
-            'category_mintic': [tk.get_validator('ignore_missing'),
-                            tk.get_converter('convert_to_extras')]
-        })
-        return schema
-
-    def is_fallback(self):
-        # Return True to register this plugin as the default handler for
-        # package types not handled by any other IDatasetForm plugin.
-        return True
-
-    def package_types(self):
-        # This plugin doesn't handle any special package types, it just
-        # registers itself as the default (above).
-        return []
 
     def update_config(self, config):
         # Must use IConfigurer rather than IConfigurable because only IConfigurer

@@ -317,6 +317,7 @@ class Wrappers:
 
     @staticmethod
     def description_socrata_style(value):
+        from pprint import pprint
         package = Wrappers.pkg
         if Package2Pod.site_url:
             site_url = Package2Pod.site_url
@@ -325,10 +326,11 @@ class Wrappers:
         organization = package.get('organization')
         extras = dict([(x['key'], x['value']) for x in package.get('extras', {})])
         category_mintic = "No se ha definido una categoria"
-        if 'category_mintic' in extras:
-            category_mintic = extras['category_mintic']
-        response = u"Datos tomados del portal de la alcaldia de Bogota, {0}. " \
-        "Datos ofrecidos por {1}, {2} . " \
+        categories = package.get("groups")
+        if len(categories)>0:
+            category_mintic = '<br/>'.join(['%s' % x["display_name"] for x in categories])
+        response = u"Datos tomados del portal de la alcaldia de Bogota, {0}. <br/> " \
+        "Datos ofrecidos por {1}, {2} . \\n " \
         "Categoria {3}.".format(site_url,organization["title"],site_url+"/organization/"+organization["id"],category_mintic)
         return response
 
