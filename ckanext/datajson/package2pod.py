@@ -328,9 +328,9 @@ class Wrappers:
         category_mintic = "No se ha definido una categoria"
         categories = package.get("groups")
         if len(categories)>0:
-            category_mintic = '<br/>'.join(['%s' % x["display_name"] for x in categories])
-        response = u"Datos tomados del portal de la alcaldia de Bogota, {0}. <br/> " \
-        "Datos ofrecidos por {1}, {2} . \\n " \
+            category_mintic = ','.join(['%s' % x["display_name"] for x in categories])
+        response = u"Datos tomados del portal de la alcaldia de Bogota, {0}. <br> " \
+        "Datos ofrecidos por {1}, {2} . " \
         "Categoria {3}.".format(site_url,organization["title"],site_url+"/organization/"+organization["id"],category_mintic)
         return response
 
