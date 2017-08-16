@@ -329,7 +329,7 @@ class Wrappers:
         categories = package.get("groups")
         if len(categories)>0:
             category_mintic = ','.join(['%s' % x["display_name"] for x in categories])
-        response = u"Datos tomados del portal de la alcaldia de Bogota, {0}. <br> " \
+        response = u"Datos tomados del portal de la alcaldia de Bogota, {0}. " \
         "Datos ofrecidos por {1}, {2} . " \
         "Categoria {3}.".format(site_url,organization["title"],site_url+"/organization/"+organization["id"],category_mintic)
         return response
