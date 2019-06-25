@@ -6,6 +6,9 @@ except ImportError:
 from logging import getLogger
 
 from helpers import *
+from pylons import config
+
+from slugify import slugify
 
 log = getLogger(__name__)
 
@@ -311,7 +314,6 @@ class Wrappers:
         'not updated': 'irregular'
     }
 
-
     @staticmethod
     def fix_accrual_periodicity(frequency):
         return Wrappers.accrual_periodicity_dict.get(str(frequency).lower().strip(), frequency)
@@ -320,6 +322,11 @@ class Wrappers:
     def build_contact_point(someValue):
         import sys, os
 
+        fields = [('maintainer', 'maintainer_email'),
+                  ('contact_name', 'contact_email'),
+                  ('author', 'author_email')]
+        contact_point = None
+
         try:
             contact_point_map = Wrappers.full_field_map.get('contactPoint').get('map')
             if not contact_point_map:
@@ -327,50 +334,56 @@ class Wrappers:
 
             package = Wrappers.pkg
 
-            if contact_point_map.get('fn').get('extra'):
-                fn = get_extra(package, contact_point_map.get('fn').get('field'),
-                               get_extra(package, "Contact Name",
-                                         package.get('maintainer')))
-            else:
-                fn = package.get('maintainer')
+            for name_field, email_field in fields:
+                if contact_point_map.get('fn').get('extra'):
+                    fn = get_extra(package, contact_point_map.get('fn').get('field'),
+                                   get_extra(package, "Contact Name",
+                                             package.get(name_field)))
+                else:
+                    fn = package.get(name_field)
 
-                fn = get_responsible_party(fn)
+                    fn = get_responsible_party(fn)
 
-            if Wrappers.redaction_enabled:
-                redaction_reason = get_extra(package, 'redacted_' + contact_point_map.get('fn').get('field'), False)
-                if redaction_reason:
-                    fn = Package2Pod.mask_redacted(fn, redaction_reason)
-            else:
-                fn = Package2Pod.filter(fn)
+                if Wrappers.redaction_enabled:
+                    redaction_reason = get_extra(package, 'redacted_' + contact_point_map.get('fn').get('field'), False)
+                    if redaction_reason:
+                        fn = Package2Pod.mask_redacted(fn, redaction_reason)
+                else:
+                    fn = Package2Pod.filter(fn)
 
-            if contact_point_map.get('hasEmail').get('extra'):
-                email = get_extra(package, contact_point_map.get('hasEmail').get('field'),
-                                  package.get('maintainer_email'))
-            else:
-                email = package.get(contact_point_map.get('hasEmail').get('field'),
-                                    package.get('maintainer_email'))
+                if contact_point_map.get('hasEmail').get('extra'):
+                    email = get_extra(package, contact_point_map.get('hasEmail').get('field'),
+                                      package.get(email_field))
+                else:
+                    email = package.get(contact_point_map.get('hasEmail').get('field'),
+                                        package.get(email_field))
 
-            if email and not is_redacted(email) and '@' in email:
-                email = 'mailto:' + email
+                # if email and not is_redacted(email) and '@' in email:
+                #     email = 'mailto:' + email
 
 
-            if Wrappers.redaction_enabled:
-                redaction_reason = get_extra(package, 'redacted_' + contact_point_map.get('hasEmail').get('field'),
-                                             False)
-                if redaction_reason:
-                    email = Package2Pod.mask_redacted(email, redaction_reason)
-            else:
-                email = Package2Pod.filter(email)
+                if Wrappers.redaction_enabled:
+                    redaction_reason = get_extra(package, 'redacted_' + contact_point_map.get('hasEmail').get('field'),
+                                                 False)
+                    if redaction_reason:
+                        email = Package2Pod.mask_redacted(email, redaction_reason)
+                else:
+                    email = Package2Pod.filter(email)
 
-            contact_point = OrderedDict([('@type', 'vcard:Contact')])
-            if not fn or len(fn) == 0:
-                fn = "No name provided"
-            if not email or len(email) == 0:
-                email = "mailto:datos@vivelabbogota.com"
-            if fn:
-                contact_point['fn'] = fn
-            if email:
-                contact_point['hasEmail'] = email
+                if fn and email:
+                    contact_point = OrderedDict([
+                        ('@type', 'vcard:Contact'),  # optional
+                        ('fn', fn),  # required
+                        ('hasEmail', 'mailto:' + email),  # required
+                    ])
+                    break
+
+            if contact_point is None:
+                contact_point = OrderedDict([
+                    ('@type', 'vcard:Contact'),  # optional
+                    ('fn', "No name provided"),  # required
+                    ('hasEmail', 'mailto:' + config.get('ckanext.contact.mail_to', '')),  # required
+                ])
 
             return contact_point
         except Exception as e:
@@ -546,3 +559,50 @@ class Wrappers:
         msg = value + ' ... BECOMES ... ' + mime_type
         log.debug(msg)
         return mime_type
+
+    @staticmethod
+    def build_meta_data(some_values):
+        import sys, os
+
+        meta_data_map = Wrappers.full_field_map.get('meta_data')
+
+        sections = ["section1", "section2"]
+        custom_fields = {}
+
+        try:
+            custom_fields_map = meta_data_map.get('custom_fields').get('sections')
+            if not custom_fields_map:
+                return None
+
+            package = Wrappers.pkg
+
+            for section in sections:
+                name_section = custom_fields_map.get(section).get('label')
+                map = custom_fields_map.get(section).get('map')
+                info = {}
+
+                for item in map:
+                    is_extra = item.get('extra')
+                    field = item.get('field')
+                    label = item.get('label')
+
+                    if is_extra:
+                        value = get_extra(package, field, '')
+                    else:
+                        value = package.get(field)
+
+                    info[label] = value
+
+                custom_fields[name_section] = info
+
+            return OrderedDict([('custom_fields', custom_fields)])
+
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            log.error("%s : %s : %s", exc_type, filename, exc_tb.tb_lineno)
+            raise e
+
+    @staticmethod
+    def language(value):
+        return [value]

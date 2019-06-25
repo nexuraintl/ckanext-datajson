@@ -2,7 +2,7 @@
   "validation_enabled": false,
   "catalog_headers": {
     "@context": "https://project-open-data.cio.gov/v1.1/schema/catalog.jsonld",
-    "@id": "http://ckan.vivelabbogota.com/data.json",
+    "@id": "http://datos.cali.gov.co/data.json",
     "@type": "dcat:Catalog",
     "conformsTo": "https://project-open-data.cio.gov/v1.1/schema",
     "describedBy": "https://project-open-data.cio.gov/v1.1/schema/catalog.json"
@@ -13,8 +13,7 @@
       "default": "public"
     },
     "issued": {
-      "extra": true,
-      "field": "issued"
+      "field": "metadata_created"
     },
     "title": {
       "field": "title"
@@ -38,7 +37,7 @@
     },
     "describedBy": {
       "extra": true,
-      "field": "Described by"
+      "field": "URL Normativa"
     },
     "describedByType": {
       "extra": true,
@@ -49,8 +48,7 @@
       "field": "landingPage"
     },
     "license": {
-      "field": "License URL"
-
+      "field": "license_title"
     },
     "primaryITInvestmentUII": {
       "extra": true,
@@ -66,7 +64,7 @@
     },
     "spatial": {
       "extra": true,
-      "field": "Spatial"
+      "field": "Cobertura Geográfica"
     },
     "temporal": {
       "extra": true,
@@ -79,7 +77,7 @@
     },
     "accrualPeriodicity": {
       "extra": true,
-      "field": "Accrual Periodicity",
+      "field": "Frecuencia de Actualización",
       "wrapper": "fix_accrual_periodicity"
     },
     "contactPoint": {
@@ -134,32 +132,99 @@
       "field": "Bureau Code",
       "split": ",",
       "wrapper": "bureau_code",
-      "default": ["000:00"]
+      "default": [
+        "000:00"
+      ]
     },
     "programCode": {
       "type": "array",
       "field": "Program Code",
       "split": ",",
       "wrapper": "program_code",
-      "default": ["000:000"]
+      "default": [
+        "000:000"
+      ]
     },
     "language": {
-      "type": "array",
       "extra": true,
-      "field": "Language",
-      "split": ","
+      "field": "Idioma",
+      "wrapper": "language"
     },
     "references": {
       "type": "array",
       "extra": true,
-      "field": "references",
+      "field": "URL Documentación",
       "split": ","
     },
     "theme": {
       "type": "array",
+      "field": "groups",
+      "array_key": "display_name"
+    },
+    "attribution": {
       "extra": true,
-      "field": "theme",
-      "split": ","
+      "field": "Nombre de la Entidad"
+    },
+    "meta_data": {
+      "wrapper": "build_meta_data",
+      "custom_fields": {
+        "sections": {
+          "section1": {
+            "label": "Información de la Entidad",
+            "map": [
+              {
+                "extra": true,
+                "field": "Municipio",
+                "label": "Municipio"
+              },
+              {
+                "extra": true,
+                "field": "Nombre de la Entidad",
+                "label": "Nombre de la Entidad"
+              },
+              {
+                "extra": true,
+                "field": "Orden",
+                "label": "Orden"
+              },
+              {
+                "extra": true,
+                "field": "Sector",
+                "label": "Sector"
+              },
+              {
+                "field": "author",
+                "label": "Área o dependencia"
+              },
+              {
+                "extra": true,
+                "field": "Departamento",
+                "label": "Departamento"
+              }
+            ]
+          },
+          "section2": {
+            "label": "Información de Datos",
+            "map": [
+              {
+                "extra": true,
+                "field": "Cobertura Geográfica",
+                "label": "Cobertura Geográfica"
+              },
+              {
+                "extra": true,
+                "field": "Idioma",
+                "label": "Idioma"
+              },
+              {
+                "extra": true,
+                "field": "Frecuencia de Actualización",
+                "label": "Frecuencia de Actualización"
+              }
+            ]
+          }
+        }
+      }
     }
   }
 }
